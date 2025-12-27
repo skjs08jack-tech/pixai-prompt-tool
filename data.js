@@ -1,51 +1,154 @@
-﻿// data.js
-// ここだけ編集すれば、カテゴリや候補を増やせる設計にしてあるよ。
+// data.js（年齢タブ無し。ここを増やしていけば完成する）
+
+var FIXED_PREFIX = ""; // いつも先頭につけたい固定文（任意）
+var FIXED_SUFFIX = ""; // いつも末尾につけたい固定文（任意）
 
 var PROMPT_CATEGORIES = [
   {
-    id: "rating",
-    name: "レーティング（18+のみ）",
+    id: "bodyShape",
+    name: "体型の設定",
     items: [
-      { label: "R-18", value: "rating:explicit" },
-      { label: "R-15(例)", value: "rating:suggestive" }
+      { label: "痩せた", value: "skinny, " },
+      { label: "スリム", value: "slim, " },
+      { label: "普通", value: "normal body, " },
+      { label: "むちむち", value: "curvy, " },
+      { label: "太もも太い", value: "thick thighs, " },
+      { label: "尻大きい", value: "wide hips, " }
     ]
   },
   {
-    id: "quality",
-    name: "品質タグ",
+    id: "breasts",
+    name: "胸の設定",
     items: [
-      { label: "高品質", value: "masterpiece, best quality" },
-      { label: "アニメ寄り", value: "anime style, sharp lineart" }
+      { label: "貧乳", value: "small breasts, " },
+      { label: "普通乳", value: "normal breasts, " },
+      { label: "巨乳", value: "large breasts, " },
+      { label: "爆乳", value: "huge breasts, " }
+    ]
+  },
+
+  {
+    id: "front_hair",
+    name: "前髪の設定",
+    items: [
+      { label: "姫カット", value: "hime cut, " },
+      { label: "ぱっつん", value: "blunt bangs, " },
+      { label: "片目隠れ", value: "hair over one eye, " },
+      { label: "目隠れ", value: "hair over eyes, " }
     ]
   },
   {
-    id: "subject",
-    name: "被写体",
+    id: "back_hair",
+    name: "後ろ髪の設定",
     items: [
-      { label: "1girl", value: "1girl, solo" },
-      { label: "1boy", value: "1boy, solo" }
+      { label: "ロング", value: "long hair, " },
+      { label: "ミディアム", value: "medium hair, " },
+      { label: "ショート", value: "short hair, " },
+      { label: "ポニテ", value: "ponytail, " },
+      { label: "ツインテ", value: "twintails, " }
     ]
   },
   {
-    id: "pose",
-    name: "ポーズ",
+    id: "hair_color",
+    name: "髪色の設定",
     items: [
-      { label: "立ち", value: "standing, full body" },
-      { label: "座り", value: "sitting" },
-      { label: "寝", value: "lying" }
+      { label: "黒", value: "black hair, " },
+      { label: "白", value: "white hair, " },
+      { label: "赤", value: "red hair, " },
+      { label: "金", value: "blonde hair, " },
+      { label: "青", value: "blue hair, " }
     ]
   },
   {
-    id: "face",
-    name: "表情",
+    id: "hair_accessory",
+    name: "髪の装飾品",
     items: [
-      { label: "微笑み", value: "smile" },
-      { label: "赤面", value: "blush" },
-      { label: "挑発", value: "seductive" }
+      { label: "ヘアピン", value: "hairpin, " },
+      { label: "ヘアリボン", value: "hair ribbon, " },
+      { label: "ヘアバンド", value: "hairband, " }
+    ]
+  },
+
+  {
+    id: "eye_shape",
+    name: "目の形の設定",
+    items: [
+      { label: "半目", value: "half-closed eyes, " },
+      { label: "ジト目", value: "jitome, " },
+      { label: "ツリ目", value: "tsurime, " },
+      { label: "タレ目", value: "tareme, " }
+    ]
+  },
+  {
+    id: "eye_color",
+    name: "目の色の設定",
+    items: [
+      { label: "赤", value: "red eyes, " },
+      { label: "青", value: "blue eyes, " },
+      { label: "緑", value: "green eyes, " },
+      { label: "紫", value: "purple eyes, " },
+      { label: "金", value: "gold eyes, " }
+    ]
+  },
+  {
+    id: "expression",
+    name: "表情の設定",
+    items: [
+      { label: "ニヤニヤ", value: "naughty face, " },
+      { label: "挑発", value: "seductive smile, " },
+      { label: "怒り", value: "angry, " },
+      { label: "恥ずかしい", value: "embarrassed, " }
+    ]
+  },
+
+  {
+    id: "clothes",
+    name: "服装の設定",
+    items: [
+      { label: "Tシャツ", value: "t-shirt, " },
+      { label: "ドレス", value: "dress, " },
+      { label: "制服", value: "school uniform, " },
+      { label: "メイド", value: "maid, " },
+      { label: "ビキニ", value: "micro bikini, " }
+    ]
+  },
+
+  {
+    id: "normal_pose",
+    name: "一般ポーズ",
+    items: [
+      { label: "立つ", value: "standing, " },
+      { label: "座る", value: "sitting, " },
+      { label: "四つん這い", value: "all fours, " },
+      { label: "寝てる", value: "sleeping, " }
+    ]
+  },
+  {
+    id: "ero_pose",
+    name: "エロポーズ",
+    items: [
+      { label: "誘惑", value: "seducing pose, " },
+      { label: "M字開脚", value: "straddling, " },
+      { label: "パイズリ", value: "paizuri, " }
+    ]
+  },
+  {
+    id: "sex_pose",
+    name: "セックス体位",
+    items: [
+      { label: "正常位", value: "missionary, " },
+      { label: "バック", value: "doggy style, " },
+      { label: "騎乗位", value: "cowgirl position, " }
+    ]
+  },
+
+  {
+    id: "juice",
+    name: "汁系",
+    items: [
+      { label: "汗", value: "sweat, " },
+      { label: "唾液", value: "saliva, " },
+      { label: "愛液", value: "love juice, " }
     ]
   }
 ];
-
-// いつも固定で入れたい「土台プロンプト」があればここ
-var FIXED_PREFIX = "";
-var FIXED_SUFFIX = "";
