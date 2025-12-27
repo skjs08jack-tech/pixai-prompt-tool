@@ -1,273 +1,232 @@
-﻿// app.js
-(function () {
-  var STORAGE_KEY = "pixai_prompt_tool_history_v1";
-  var MAX_HISTORY = 30;
+// app.js（完コピ風UI：details/summary + ランダム + 出力 + 履歴）
 
-  var state = {}; // categoryId -> { mode: "none"|"random"|"pick", value: string }
+const STORAGE_KEY = "pixai_prompt_tool_history_v2";
+const MAX_HISTORY = 50;
 
-  function $(id) { return document.getElementById(id); }
+// 参考サイトの注意「ポーズ系複数で軽微なバグ」対策：どれか選んだら他は未選択に戻す
+const POSE_EXCLUSIVE_IDS = ["normal_pose", "ero_pose", "sex_pose"];
 
-  function escapeHtml(s) {
-    return (s || "").replace(/[&<>"']/g, function (c) {
-      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
-    });
+const state = {}; // id -> { mode: "none"|"random"|"pick", value: string }
+
+function $(id){ return document.getElementById(id); }
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function saveHistory(arr){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }catch(e){}
+}
+function pushHistory(text){
+  if(!text) return;
+  const hist = loadHistory();
+  // 重複整理
+  for(let i=hist.length-1;i>=0;i--){
+    if(hist[i] === text) hist.splice(i,1);
   }
+  hist.unshift(text);
+  if(hist.length > MAX_HISTORY) hist.length = MAX_HISTORY;
+  saveHistory(hist);
+  renderHistoryArea();
+}
+function renderHistoryArea(){
+  const area = $("history_area");
+  if(!area) return;
+  area.value = loadHistory().join("\n");
+}
+function clearHistory(){
+  saveHistory([]);
+  renderHistoryArea();
+}
+window.clearHistory = clearHistory;
 
-  function loadHistory() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      var arr = JSON.parse(raw);
-      if (arr && arr.length) return arr;
-    } catch (e) {}
-    return [];
+function initState(){
+  for(const cat of PROMPT_CATEGORIES){
+    state[cat.id] = { mode:"none", value:"" };
   }
+}
 
-  function saveHistory(arr) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch (e) {}
-  }
+function pickRandomValue(cat){
+  const items = cat.items || [];
+  if(!items.length) return "";
+  const n = Math.floor(Math.random() * items.length);
+  return (items[n].value || "").trim();
+}
 
-  function pushHistory(text) {
-    if (!text) return;
-    var hist = loadHistory();
-    // 先頭重複は消す
-    if (hist.length && hist[0] === text) return;
-    // 同一要素は後ろから除去
-    var i;
-    for (i = hist.length - 1; i >= 0; i--) {
-      if (hist[i] === text) hist.splice(i, 1);
-    }
-    hist.unshift(text);
-    if (hist.length > MAX_HISTORY) hist.length = MAX_HISTORY;
-    saveHistory(hist);
-    renderHistory();
-  }
+function setCategoryMode(catId, mode, value=""){
+  state[catId] = { mode, value };
 
-  function renderHistory() {
-    var hist = loadHistory();
-    var el = $("history");
-    if (!hist.length) {
-      el.innerHTML = '<div class="small">履歴なし</div>';
-      return;
-    }
-    var html = "";
-    for (var i = 0; i < hist.length; i++) {
-      html += '<div class="historyItem" data-idx="' + i + '">' + escapeHtml(hist[i]) + "</div>";
-    }
-    el.innerHTML = html;
-
-    // クリックで復帰
-    var items = el.getElementsByClassName("historyItem");
-    for (i = 0; i < items.length; i++) {
-      items[i].onclick = function () {
-        var idx = parseInt(this.getAttribute("data-idx"), 10);
-        var h = loadHistory();
-        $("output").value = h[idx] || "";
-      };
-    }
-  }
-
-  function initState() {
-    for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-      state[PROMPT_CATEGORIES[i].id] = { mode: "none", value: "" };
-    }
-  }
-
-  function pickRandomItem(cat) {
-    var items = cat.items || [];
-    if (!items.length) return "";
-    var n = Math.floor(Math.random() * items.length);
-    return items[n].value || "";
-  }
-
-  function buildPrompt() {
-    var parts = [];
-    if (typeof FIXED_PREFIX === "string" && FIXED_PREFIX.trim()) parts.push(FIXED_PREFIX.trim());
-
-    for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-      var cat = PROMPT_CATEGORIES[i];
-      var s = state[cat.id];
-      if (!s) continue;
-
-      if (s.mode === "pick" && s.value) {
-        parts.push(s.value);
-      } else if (s.mode === "random") {
-        var rv = pickRandomItem(cat);
-        if (rv) parts.push(rv);
-      }
-      // none は何もしない
-    }
-
-    var extra = $("extra").value || "";
-    if (extra.trim()) parts.push(extra.trim());
-
-    if (typeof FIXED_SUFFIX === "string" && FIXED_SUFFIX.trim()) parts.push(FIXED_SUFFIX.trim());
-
-    // カンマ区切りを整える（雑に二重カンマを消す）
-    var text = parts.join(", ");
-    text = text.replace(/\s+,/g, ",").replace(/,\s+,/g, ", ").replace(/,{2,}/g, ",");
-    return text.trim();
-  }
-
-  function setCategory(catId, mode, value) {
-    state[catId] = { mode: mode, value: value || "" };
-    // ラジオUI反映
-    var name = "cat_" + catId;
-    var radios = document.getElementsByName(name);
-    for (var i = 0; i < radios.length; i++) {
-      var r = radios[i];
-      if (r.value === (mode === "pick" ? value : mode)) {
-        r.checked = true;
+  // ポーズ系排他：一個をpick/randomにしたら他はnoneへ
+  if(POSE_EXCLUSIVE_IDS.includes(catId) && mode !== "none"){
+    for(const otherId of POSE_EXCLUSIVE_IDS){
+      if(otherId !== catId){
+        state[otherId] = { mode:"none", value:"" };
+        // UI側もnoneにチェックを戻す
+        const noneRadio = document.querySelector(`input[name="cat_${otherId}"][value="__NONE__"]`);
+        if(noneRadio) noneRadio.checked = true;
       }
     }
   }
 
-  function renderCategories() {
-    var root = $("categories");
-    var html = "";
+  // UI同期（radio）
+  const name = `cat_${catId}`;
+  if(mode === "none"){
+    const r = document.querySelector(`input[name="${name}"][value="__NONE__"]`);
+    if(r) r.checked = true;
+  }else if(mode === "random"){
+    const r = document.querySelector(`input[name="${name}"][value="__RANDOM__"]`);
+    if(r) r.checked = true;
+  }else{
+    // pickの場合：valueに一致するradioを探す
+    const r = document.querySelector(`input[name="${name}"][data-pick="1"][data-val="${cssEscape(value)}"]`);
+    if(r) r.checked = true;
+  }
+}
 
-    for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-      var cat = PROMPT_CATEGORIES[i];
-      html += '<div class="cat">';
-      html += '<div class="catTitle"><div><b>' + escapeHtml(cat.name) + '</b></div>';
-      html += '<div><button type="button" data-rand="' + escapeHtml(cat.id) + '">このカテゴリをランダム</button></div></div>';
+function buildPrompt(){
+  const parts = [];
+  if(typeof FIXED_PREFIX === "string" && FIXED_PREFIX.trim()) parts.push(FIXED_PREFIX.trim());
 
-      html += '<div class="choices">';
-      // 未選択
-      html += choiceRadio(cat.id, "none", "未選択", "none");
-      // ランダム
-      html += choiceRadio(cat.id, "random", "ランダム", "random");
+  for(const cat of PROMPT_CATEGORIES){
+    const s = state[cat.id];
+    if(!s) continue;
 
-      var items = cat.items || [];
-      for (var j = 0; j < items.length; j++) {
-        var it = items[j];
-        html += choiceRadio(cat.id, it.value, it.label, "pick");
-      }
-      html += "</div></div>";
+    if(s.mode === "pick" && s.value){
+      parts.push(s.value);
+    }else if(s.mode === "random"){
+      const rv = pickRandomValue(cat);
+      if(rv) parts.push(rv);
+    }
+  }
+
+  if(typeof FIXED_SUFFIX === "string" && FIXED_SUFFIX.trim()) parts.push(FIXED_SUFFIX.trim());
+
+  // 参考に近い：value側に「, 」が含まれてる想定もあるので、そのまま連結→軽く整形
+  let text = parts.join(" ").replace(/\s+/g, " ").trim();
+  text = text.replace(/,\s*,/g, ", ").replace(/\s+,/g, ", ").replace(/,{2,}/g, ",");
+  return text.trim();
+}
+
+function showResult(){
+  const out = buildPrompt();
+  const area = $("result_area");
+  if(area) area.value = out;
+  pushHistory(out);
+}
+window.showResult = showResult;
+
+async function copyResult(){
+  const area = $("result_area");
+  const text = area ? area.value : "";
+  if(!text) return;
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText(text); return; }catch(e){}
+  }
+  // フォールバック
+  if(area){
+    area.focus();
+    area.select();
+    try{ document.execCommand("copy"); }catch(e){}
+  }
+}
+window.copyResult = copyResult;
+
+// ------- グループランダム（参考サイトのボタン群） -------
+function randomizeIds(ids){
+  for(const id of ids){
+    setCategoryMode(id, "random");
+  }
+}
+function bodyRandom(){ randomizeIds(["bodyShape","breasts"]); }
+function hairRandom(){ randomizeIds(["front_hair","back_hair","hair_color","hair_accessory"]); }
+function faceRandom(){ randomizeIds(["eye_shape","eye_color","expression"]); }
+function clothesRandom(){ randomizeIds(["clothes"]); }
+function poseRandom(){ randomizeIds(["normal_pose","ero_pose","sex_pose"]); }
+function juiceRandom(){ randomizeIds(["juice"]); }
+function allRandom(){
+  bodyRandom(); hairRandom(); faceRandom(); clothesRandom(); poseRandom(); juiceRandom();
+}
+window.bodyRandom = bodyRandom;
+window.hairRandom = hairRandom;
+window.faceRandom = faceRandom;
+window.clothesRandom = clothesRandom;
+window.poseRandom = poseRandom;
+window.juiceRandom = juiceRandom;
+window.allRandom = allRandom;
+
+// ------- UI生成（details/summaryの中にradioを並べる） -------
+function renderCategories(){
+  const root = $("categories");
+  if(!root) return;
+
+  let html = "";
+  for(const cat of PROMPT_CATEGORIES){
+    const name = `cat_${cat.id}`;
+    html += `<div class="item">
+      <h3>${escapeHtml(cat.name)}</h3>
+      <details>
+        <summary>開く（ここに選択肢が出る）</summary>
+        <form>
+          <div>
+            <label><input type="radio" name="${name}" value="__NONE__" checked> 未選択</label><br>
+            <label><input type="radio" name="${name}" value="__RANDOM__"> ランダム</label><br>
+          </div>
+          <div style="margin-top:8px;">`;
+
+    for(const it of (cat.items||[])){
+      const v = (it.value || "");
+      // pick用：value一致で探せるよう data-val を付ける
+      html += `<label><input type="radio" name="${name}" value="__PICK__" data-pick="1" data-val="${escapeAttr(v)}"> ${escapeHtml(it.label)}</label><br>`;
     }
 
-    root.innerHTML = html;
+    html += `</div>
+        </form>
+      </details>
+    </div>`;
+  }
 
-    // ラジオ動作
-    for (i = 0; i < PROMPT_CATEGORIES.length; i++) {
-      (function (catId) {
-        var name = "cat_" + catId;
-        var radios = document.getElementsByName(name);
-        for (var k = 0; k < radios.length; k++) {
-          radios[k].onchange = function () {
-            var v = this.value;
-            if (v === "none") setCategory(catId, "none", "");
-            else if (v === "random") setCategory(catId, "random", "");
-            else setCategory(catId, "pick", v);
-          };
+  root.innerHTML = html;
+
+  // radio change => state反映
+  for(const cat of PROMPT_CATEGORIES){
+    const name = `cat_${cat.id}`;
+    const radios = document.querySelectorAll(`input[name="${name}"]`);
+    radios.forEach(r=>{
+      r.addEventListener("change", ()=>{
+        const v = r.value;
+        if(v === "__NONE__") setCategoryMode(cat.id, "none");
+        else if(v === "__RANDOM__") setCategoryMode(cat.id, "random");
+        else {
+          // pick
+          const chosen = r.getAttribute("data-val") || "";
+          setCategoryMode(cat.id, "pick", chosen);
         }
-      })(PROMPT_CATEGORIES[i].id);
-    }
-
-    // カテゴリ単体ランダムボタン
-    var btns = root.getElementsByTagName("button");
-    for (i = 0; i < btns.length; i++) {
-      (function (b) {
-        var catId = b.getAttribute("data-rand");
-        if (!catId) return;
-        b.onclick = function () {
-          setCategory(catId, "random", "");
-        };
-      })(btns[i]);
-    }
-  }
-
-  function choiceRadio(catId, value, label, kind) {
-    var name = "cat_" + catId;
-    // valueが "none/random" と衝突しないように kind で区別してる
-    var v = (kind === "pick") ? value : kind;
-    return (
-      '<label class="choice">' +
-      '<input type="radio" name="' + escapeHtml(name) + '" value="' + escapeHtml(v) + '">' +
-      '<span>' + escapeHtml(label) + '</span>' +
-      "</label>"
-    );
-  }
-
-  function copyToClipboard(text) {
-    var status = $("copyStatus");
-    status.textContent = "";
-
-    // 1) 可能なら Clipboard API（ただし“安全なコンテキスト”条件がある） :contentReference[oaicite:2]{index=2}
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).then(function () {
-        status.textContent = "コピーしたよ";
-      }).catch(function () {
-        // 2) フォールバック（execCommand） :contentReference[oaicite:3]{index=3}
-        fallbackCopy(text, status);
       });
-    }
-    // 2) フォールバック
-    fallbackCopy(text, status);
-    return Promise.resolve();
+    });
+
+    // 初期：noneに同期
+    setCategoryMode(cat.id, "none");
   }
+  renderHistoryArea();
+}
 
-  function fallbackCopy(text, statusEl) {
-    var ta = document.createElement("textarea");
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      var ok = document.execCommand("copy");
-      statusEl.textContent = ok ? "コピーしたよ" : "コピー失敗（手動で選択してね）";
-    } catch (e) {
-      statusEl.textContent = "コピー失敗（手動で選択してね）";
-    }
-    document.body.removeChild(ta);
-  }
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+function escapeAttr(s){
+  return escapeHtml(s).replace(/"/g,"&quot;");
+}
+function cssEscape(s){
+  // querySelector用の超簡易（今回はdata-val一致検索に使ってるので、原則不要だけど保険）
+  return String(s||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');
+}
 
-  function wireUI() {
-    $("btnGenerate").onclick = function () {
-      var out = buildPrompt();
-      $("output").value = out;
-      pushHistory(out);
-    };
-
-    $("btnCopy").onclick = function () {
-      var text = $("output").value || "";
-      if (!text.trim()) return;
-      copyToClipboard(text);
-    };
-
-    $("btnClear").onclick = function () {
-      $("output").value = "";
-      $("copyStatus").textContent = "";
-    };
-
-    $("btnRandomAll").onclick = function () {
-      for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-        setCategory(PROMPT_CATEGORIES[i].id, "random", "");
-      }
-    };
-
-    $("btnReset").onclick = function () {
-      for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-        setCategory(PROMPT_CATEGORIES[i].id, "none", "");
-      }
-    };
-
-    $("btnClearHistory").onclick = function () {
-      saveHistory([]);
-      renderHistory();
-    };
-  }
-
-  function main() {
-    initState();
-    renderCategories();
-    wireUI();
-    renderHistory();
-
-    // 初期は全部未選択にチェック
-    for (var i = 0; i < PROMPT_CATEGORIES.length; i++) {
-      setCategory(PROMPT_CATEGORIES[i].id, "none", "");
-    }
-  }
-
-  main();
+(function main(){
+  initState();
+  renderCategories();
 })();
