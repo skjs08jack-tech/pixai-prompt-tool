@@ -1,19 +1,30 @@
-// data.js（年齢タブ無し。ここを増やしていけば完成する）
-
-var FIXED_PREFIX = ""; // いつも先頭につけたい固定文（任意）
-var FIXED_SUFFIX = ""; // いつも末尾につけたい固定文（任意）
+// data.js（pasted.txtから抽出：年齢タブ girl_age は削除、年齢制限 nsfw は復活、他は全件そのまま）
+var FIXED_PREFIX = "";
+var FIXED_SUFFIX = "";
 
 var PROMPT_CATEGORIES = [
+  {
+    id: "nsfw",
+    name: "年齢制限の設定",
+    items: [
+      { label: "全年齢", value: "" },
+      { label: "R-18", value: "nsfw, " }
+    ]
+  },
   {
     id: "bodyShape",
     name: "体型の設定",
     items: [
+      { label: "肋骨", value: "ribs, " },
       { label: "痩せた", value: "skinny, " },
       { label: "スリム", value: "slim, " },
       { label: "普通", value: "normal body, " },
+      { label: "ぽっちゃりした", value: "plump, " },
       { label: "むちむち", value: "curvy, " },
-      { label: "太もも太い", value: "thick thighs, " },
-      { label: "尻大きい", value: "wide hips, " }
+      { label: "太り気味", value: "fat, " },
+      { label: "巨乳デカ尻", value: "thicc, " },
+      { label: "太い太もも", value: "thick thighs, " },
+      { label: "お尻が大きい", value: "wide hips, " }
     ]
   },
   {
@@ -26,26 +37,45 @@ var PROMPT_CATEGORIES = [
       { label: "爆乳", value: "huge breasts, " }
     ]
   },
-
   {
     id: "front_hair",
     name: "前髪の設定",
     items: [
+      { label: "分け目はっきり", value: "parted bangs, " },
       { label: "姫カット", value: "hime cut, " },
-      { label: "ぱっつん", value: "blunt bangs, " },
+      { label: "内向きぱっつん", value: "blunt bangs, " },
+      { label: "横に流れる", value: "swept bangs, " },
+      { label: "左右非対称", value: "asymmetrical bangs, " },
+      { label: "真ん中分け", value: "parted bangs, " },
+      { label: "目と目の間に前髪", value: "hair between eyes, " },
       { label: "片目隠れ", value: "hair over one eye, " },
-      { label: "目隠れ", value: "hair over eyes, " }
+      { label: "両目隠れ", value: "hair over eyes, " },
+      { label: "三つ編み前髪", value: "braided bangs, " },
+      { label: "前髪を後ろに", value: "hair pulled back, " }
     ]
   },
   {
     id: "back_hair",
     name: "後ろ髪の設定",
     items: [
-      { label: "ロング", value: "long hair, " },
-      { label: "ミディアム", value: "medium hair, " },
-      { label: "ショート", value: "short hair, " },
-      { label: "ポニテ", value: "ponytail, " },
-      { label: "ツインテ", value: "twintails, " }
+      { label: "ロングヘアー", value: "long hair, " },
+      { label: "ミディアムヘアー", value: "medium hair, " },
+      { label: "ショートヘアー", value: "short hair, " },
+      { label: "ピクシーカット", value: "pixie cut, " },
+      { label: "ボリューム大", value: "big hair, " },
+      { label: "ピクシーカット", value: "pixie cut, " },
+      { label: "ボブカット", value: "bob cut, " },
+      { label: "三つ編み", value: "french braid, " },
+      { label: "長三つ編み", value: "low-braided long hair, " },
+      { label: "ダブル三つ編み", value: "twin braids, " },
+      { label: "横三つ編み", value: "side braids, " },
+      { label: "こぶみたいなの", value: "hair bun, " },
+      { label: "こぶみたいなの2つ", value: "double bun, " },
+      { label: "ポニーテール", value: "ponytail, " },
+      { label: "ショートポニーテール", value: "short ponytail, " },
+      { label: "サイドポニーテール", value: "side ponytail, " },
+      { label: "ツインテール", value: "twintails, " },
+      { label: "わかめ", value: "wavy hair, " }
     ]
   },
   {
@@ -54,101 +84,292 @@ var PROMPT_CATEGORIES = [
     items: [
       { label: "黒", value: "black hair, " },
       { label: "白", value: "white hair, " },
+      { label: "グレー", value: "grey hair, " },
       { label: "赤", value: "red hair, " },
-      { label: "金", value: "blonde hair, " },
-      { label: "青", value: "blue hair, " }
+      { label: "茶", value: "brown hair, " },
+      { label: "オレンジ", value: "orange hair, " },
+      { label: "黄色", value: "yellow hair, " },
+      { label: "緑", value: "green hair, " },
+      { label: "青", value: "blue hair, " },
+      { label: "水色", value: "light blue hair, " },
+      { label: "紫", value: "purple hair, " },
+      { label: "ネイビー", value: "navy hair, " },
+      { label: "ゴールド", value: "gold hair, " },
+      { label: "シルバー", value: "silver hair, " }
     ]
   },
   {
     id: "hair_accessory",
     name: "髪の装飾品",
     items: [
+      { label: "ヘアバンド", value: "hairband, " },
+      { label: "ヘッドバンド", value: "headband, " },
+      { label: "シュシュ", value: "scrunchie, " },
+      { label: "花", value: "hair flower, " },
       { label: "ヘアピン", value: "hairpin, " },
-      { label: "ヘアリボン", value: "hair ribbon, " },
-      { label: "ヘアバンド", value: "hairband, " }
+      { label: "ヘアクリップ", value: "hairclip, " },
+      { label: "ヘアリボン（紐系）", value: "hair ribbon, " },
+      { label: "リボン", value: "hair bow, " },
+      { label: "ヘアゴム", value: "hair bobbles, " }
     ]
   },
-
   {
     id: "eye_shape",
     name: "目の形の設定",
     items: [
+      { label: "とじ目", value: "closed eyes, " },
       { label: "半目", value: "half-closed eyes, " },
       { label: "ジト目", value: "jitome, " },
       { label: "ツリ目", value: "tsurime, " },
-      { label: "タレ目", value: "tareme, " }
+      { label: "上目遣い", value: "upturned eyes, " },
+      { label: "タレ目", value: "tareme, " },
+      { label: "ハート目", value: "heart-shaped pupils, " },
+      { label: "オッドアイ", value: "heterochromia, " },
+      { label: "キラキラ目", value: "jewelry eyes, " },
+      { label: "レイプ目", value: "empty eyes, " },
+      { label: "猫目", value: "slit pupils, " }
     ]
   },
   {
     id: "eye_color",
     name: "目の色の設定",
     items: [
+      { label: "黒", value: "black eyes, " },
+      { label: "白", value: "white eyes, " },
+      { label: "グレー", value: "grey eyes, " },
       { label: "赤", value: "red eyes, " },
-      { label: "青", value: "blue eyes, " },
+      { label: "茶", value: "brown eyes, " },
+      { label: "オレンジ", value: "orange eyes, " },
+      { label: "黄色", value: "yellow eyes, " },
       { label: "緑", value: "green eyes, " },
+      { label: "青", value: "blue eyes, " },
+      { label: "水色", value: "light blue eyes, " },
       { label: "紫", value: "purple eyes, " },
-      { label: "金", value: "gold eyes, " }
+      { label: "ネイビー", value: "navy eyes, " },
+      { label: "ゴールド", value: "gold eyes, " },
+      { label: "シルバー", value: "silver eyes, " }
     ]
   },
   {
     id: "expression",
     name: "表情の設定",
     items: [
+      { label: "満足そう", value: "gloating, " },
+      { label: "メスガキスマイル", value: "evil smile, " },
+      { label: "歯を見せて笑う", value: "grin, " },
       { label: "ニヤニヤ", value: "naughty face, " },
-      { label: "挑発", value: "seductive smile, " },
+      { label: "誘惑スマイル", value: "seductive smile, " },
+      { label: "挑発的", value: "tempting mesugaki smile with blush cheeks, " },
+      { label: "ハッピー", value: "happy, " },
+      { label: "ふくれっ面", value: "pout, " },
+      { label: "退屈そう", value: "bored, " },
       { label: "怒り", value: "angry, " },
-      { label: "恥ずかしい", value: "embarrassed, " }
+      { label: "苦々しい", value: "bitter, " },
+      { label: "嫌悪感", value: "disgust, " },
+      { label: "泣きわめく", value: "crying, " },
+      { label: "困惑", value: "embarrassed, " },
+      { label: "怖がる", value: "scared, " },
+      { label: "寂しそう", value: "lonely, " },
+      { label: "悲しそう", value: "sad, " },
+      { label: "驚き", value: "surprised, " },
+      { label: "興奮した", value: "excited, " },
+      { label: "あわわわ", value: "wavy mouth, " },
+      { label: "人見知り", value: "shy girl, " },
+      { label: "恥ずかしい", value: "embarrassed, " },
+      { label: "闇堕ち", value: "dark persona, " },
+      { label: "ぼけー", value: "blank eyes, " },
+      { label: "事後放心", value: "afterglow, " },
+      { label: "アヘ顔", value: "ahegao, " },
+      { label: "性的興奮", value: "in heat, " },
+      { label: "ドヤ顔", value: "smug, " },
+      { label: "寄り目", value: "cross-eyed, " }
     ]
   },
-
   {
     id: "clothes",
     name: "服装の設定",
     items: [
       { label: "Tシャツ", value: "t-shirt, " },
-      { label: "ドレス", value: "dress, " },
-      { label: "制服", value: "school uniform, " },
-      { label: "メイド", value: "maid, " },
-      { label: "ビキニ", value: "micro bikini, " }
+      { label: "長袖シャツ", value: "long sleeves, " },
+      { label: "トレーナー", value: "sweatshirt, " },
+      { label: "ジャージ", value: "tracksuit, " },
+      { label: "パーカー", value: "hoodie, " },
+      { label: "ノースリーブ", value: "sleeveless, " },
+      { label: "ボタンシャツ", value: "button-up shirt, " },
+      { label: "ワイシャツ", value: "white shirt, " },
+      { label: "ブラウス", value: "blouse, " },
+      { label: "セーター", value: "sweater, " },
+      { label: "カーディガン", value: "cardigan, " },
+      { label: "コート", value: "coat, " },
+      { label: "ジャケット", value: "jacket, " },
+      { label: "スーツ", value: "suit, " },
+      { label: "スカート", value: "skirt, " },
+      { label: "ミニスカート", value: "miniskirt, " },
+      { label: "マイクロミニスカート", value: "microskirt, " },
+      { label: "プリーツスカート", value: "pleated skirt, " },
+      { label: "ハイレグ", value: "highleg, " },
+      { label: "パンツ", value: "pants, " },
+      { label: "ショートパンツ", value: "shorts, " },
+      { label: "ホットパンツ", value: "hotpants, " },
+      { label: "ミニワンピ", value: "short dress, " },
+      { label: "ワンピース", value: "dress, " },
+      { label: "ロングワンピ", value: "long dress, " },
+      { label: "和服", value: "kimono, " },
+      { label: "浴衣", value: "yukata, " },
+      { label: "裸エプロン", value: "naked apron, " },
+      { label: "メイド服", value: "maid, " },
+      { label: "セーラー服", value: "sailor uniform, " },
+      { label: "学生服", value: "school uniform, " },
+      { label: "ブルマ", value: "buruma, " },
+      { label: "体操服", value: "gym uniform, " },
+      { label: "スク水", value: "school swimsuit, " },
+      { label: "水着", value: "swimsuit, " },
+      { label: "ビキニ", value: "bikini, " },
+      { label: "マイクロビキニ", value: "micro bikini, " },
+      { label: "下着", value: "underwear, " },
+      { label: "ブラ", value: "bra, " },
+      { label: "パンツ", value: "panties, " },
+      { label: "Tバック", value: "thong, " },
+      { label: "ガーターベルト", value: "garter belt, " },
+      { label: "裸", value: "nude, " },
+      { label: "使用済みゴム", value: "used condom, " }
     ]
   },
-
   {
     id: "normal_pose",
     name: "一般ポーズ",
     items: [
-      { label: "立つ", value: "standing, " },
-      { label: "座る", value: "sitting, " },
-      { label: "四つん這い", value: "all fours, " },
-      { label: "寝てる", value: "sleeping, " }
+      { label: "こちらに指さし", value: "point at viewer, " },
+      { label: "両手を広げる", value: "spread arms, " },
+      { label: "Vサイン", value: "peace sign, " },
+      { label: "腕を組む", value: "arms crossed, " },
+      { label: "手を腰に", value: "hands on hips, " },
+      { label: "手を後ろに", value: "hands behind back, " },
+      { label: "手を前に", value: "hands in front, " },
+      { label: "手を胸に", value: "hand on chest, " },
+      { label: "手を口に", value: "hand on mouth, " },
+      { label: "手を頬に", value: "hand on cheek, " },
+      { label: "手を頭に", value: "hand on head, " },
+      { label: "手を髪に", value: "hand in hair, " },
+      { label: "手を上げる", value: "arms up, " },
+      { label: "手を伸ばす", value: "reaching out, " },
+      { label: "手を振る", value: "waving, " },
+      { label: "手を合わせる", value: "hands together, " },
+      { label: "手を祈る", value: "praying hands, " },
+      { label: "片手を上げる", value: "one arm up, " },
+      { label: "片手を伸ばす", value: "one hand reaching out, " },
+      { label: "片手を腰に", value: "one hand on hip, " },
+      { label: "片手を胸に", value: "one hand on chest, " },
+      { label: "片手を口に", value: "one hand on mouth, " },
+      { label: "片手を頬に", value: "one hand on cheek, " },
+      { label: "片手を頭に", value: "one hand on head, " },
+      { label: "片手を髪に", value: "one hand in hair, " },
+      { label: "片手を振る", value: "one hand waving, " },
+      { label: "両手を腰に", value: "hands on hips, " },
+      { label: "両手を胸に", value: "hands on chest, " },
+      { label: "両手を口に", value: "hands on mouth, " },
+      { label: "両手を頬に", value: "hands on cheek, " },
+      { label: "両手を頭に", value: "hands on head, " },
+      { label: "両手を髪に", value: "hands in hair, " },
+      { label: "両手でハート", value: "hand heart, " },
+      { label: "敬礼", value: "salute, " },
+      { label: "ピース", value: "peace sign, " },
+      { label: "グー", value: "fist, " },
+      { label: "手を握る", value: "clenched hands, " },
+      { label: "手を開く", value: "open hands, " },
+      { label: "手を合わせる", value: "hands together, " },
+      { label: "手を組む", value: "interlocked fingers, " },
+      { label: "片手を伸ばす", value: "reaching out, " },
+      { label: "お辞儀", value: "bowing, " },
+      { label: "スカートつまみ挨拶", value: "curtsey, " }
     ]
   },
   {
     id: "ero_pose",
     name: "エロポーズ",
     items: [
-      { label: "誘惑", value: "seducing pose, " },
-      { label: "M字開脚", value: "straddling, " },
-      { label: "パイズリ", value: "paizuri, " }
+      { label: "女性器見せ", value: "pussy, " },
+      { label: "尻見せ", value: "ass, " },
+      { label: "胸見せ", value: "breasts, " },
+      { label: "乳首見せ", value: "nipples, " },
+      { label: "乳首透け", value: "see-through nipples, " },
+      { label: "尻穴見せ", value: "anus, " },
+      { label: "股間隠し", value: "covering crotch, " },
+      { label: "乳首隠し", value: "covering nipples, " },
+      { label: "股間隠し両手", value: "covering crotch with both hands, " },
+      { label: "股間隠し片手", value: "covering crotch with one hand, " },
+      { label: "股間押さえ", value: "holding crotch, " },
+      { label: "胸押さえ", value: "holding breasts, " },
+      { label: "乳首つまみ", value: "nipple pinch, " },
+      { label: "乳首いじり", value: "nipple tweak, " },
+      { label: "乳首舐め", value: "licking nipple, " },
+      { label: "乳首吸い", value: "sucking nipple, " },
+      { label: "乳首責め", value: "nipple stimulation, " },
+      { label: "胸揉み", value: "breast grab, " },
+      { label: "乳首透け服", value: "nipple pokies, " },
+      { label: "パンツずらし", value: "pulling panties aside, " },
+      { label: "パンツ脱ぎかけ", value: "panties down, " },
+      { label: "服脱ぎかけ", value: "undressing, " },
+      { label: "服破れ", value: "torn clothes, " },
+      { label: "服めくり", value: "clothes lift, " },
+      { label: "透け服", value: "see-through, " },
+      { label: "透けビキニ", value: "see-through bikini, " },
+      { label: "透け下着", value: "see-through underwear, " },
+      { label: "開脚", value: "spread legs, " },
+      { label: "M字開脚", value: "m legs, " },
+      { label: "パンツ見せ", value: "panties, " },
+      { label: "パンツ食い込み", value: "wedgie, " },
+      { label: "パンツずり下げ", value: "pulling down panties, " },
+      { label: "露出狂", value: "public indecency, " }
     ]
   },
   {
     id: "sex_pose",
     name: "セックス体位",
     items: [
-      { label: "正常位", value: "missionary, " },
-      { label: "バック", value: "doggy style, " },
-      { label: "騎乗位", value: "cowgirl position, " }
+      { label: "正常位", value: "intercourse with a man, {{missionary,face to face}}, " },
+      { label: "後背位", value: "intercourse with a man, {{doggystyle}}, " },
+      { label: "騎乗位", value: "intercourse with a man, {{cowgirl position}}, " },
+      { label: "背面騎乗位", value: "intercourse with a man, {{reverse cowgirl position}}, " },
+      { label: "立ちバック", value: "intercourse with a man, {{standing sex}}, " },
+      { label: "対面座位", value: "intercourse with a man, {{sitting}}, " },
+      { label: "駅弁", value: "intercourse with a man, {{suspended congress}}, " },
+      { label: "寝バック", value: "intercourse with a man, {{lying}}, " },
+      { label: "横バック", value: "intercourse with a man, {{spooning}}, " },
+      { label: "背面側位", value: "intercourse with a man, {{spooning}}, " },
+      { label: "手マン", value: "implied_fingering, " },
+      { label: "フェラ", value: "fellatio, " },
+      { label: "イラマ", value: "irrumatio, " },
+      { label: "ディープスロート", value: "deepthroat, " },
+      { label: "パイズリ", value: "paizuri, " },
+      { label: "アナルセックス", value: "intercourse with a man, {{anal intercourse}}, " }
     ]
   },
-
   {
     id: "juice",
     name: "汁系",
     items: [
-      { label: "汗", value: "sweat, " },
-      { label: "唾液", value: "saliva, " },
-      { label: "愛液", value: "love juice, " }
+      { label: "汗ばみ", value: "sweat, " },
+      { label: "湯気", value: "steam, " },
+      { label: "涙", value: "tears, " },
+      { label: "よだれ", value: "saliva, " },
+      { label: "愛液", value: "pussy juice, " },
+      { label: "潮吹き", value: "squirting, " },
+      { label: "濡れ", value: "wet, " },
+      { label: "体にかかる", value: "cum on body, " },
+      { label: "顔にかかる", value: "facial, " },
+      { label: "服にかかる", value: "cum on clothes, " },
+      { label: "髪にかかる", value: "cum on hair, " },
+      { label: "頭にかかる", value: "cum on head, " },
+      { label: "顔から垂れる", value: "cum drips, " },
+      { label: "口から垂れる", value: "cum in mouth, " },
+      { label: "膣から出る", value: "pussy cum, " },
+      { label: "尻から出る", value: "cum from anus, " },
+      { label: "中出し", value: "internal cumshot, " },
+      { label: "精液まみれ", value: "cum, " },
+      { label: "精液垂れ", value: "cum overflow, " },
+      { label: "顔射", value: "facial, " },
+      { label: "ぶっかけ", value: "bukkake, " }
     ]
   }
 ];
