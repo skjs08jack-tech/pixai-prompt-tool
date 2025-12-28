@@ -167,27 +167,28 @@ function renderCategories(){
   let html = "";
   for(const cat of PROMPT_CATEGORIES){
     const name = `cat_${cat.id}`;
-    html += `<div class="item">
-      <h3>${escapeHtml(cat.name)}</h3>
-      <details>
-        <summary>開く（ここに選択肢が出る）</summary>
-        <form>
-          <div>
-            <label><input type="radio" name="${name}" value="__NONE__" checked> 未選択</label><br>
-            <label><input type="radio" name="${name}" value="__RANDOM__"> ランダム</label><br>
-          </div>
-          <div style="margin-top:8px;">`;
+
+    html += `
+      <div class="catBlock">
+        <div class="catTitle">${escapeHtml(cat.name)}</div>
+        <details>
+          <summary><span>詳細</span></summary>
+          <div class="choices">
+            <label><input type="radio" name="${name}" value="__NONE__" checked> 未選択</label>
+            <label><input type="radio" name="${name}" value="__RANDOM__"> ランダム</label>
+            <hr>
+    `;
 
     for(const it of (cat.items||[])){
       const v = (it.value || "");
-      // pick用：value一致で探せるよう data-val を付ける
-      html += `<label><input type="radio" name="${name}" value="__PICK__" data-pick="1" data-val="${escapeAttr(v)}"> ${escapeHtml(it.label)}</label><br>`;
+      html += `<label><input type="radio" name="${name}" value="__PICK__" data-pick="1" data-val="${escapeAttr(v)}"> ${escapeHtml(it.label)}</label>`;
     }
 
-    html += `</div>
-        </form>
-      </details>
-    </div>`;
+    html += `
+          </div>
+        </details>
+      </div>
+    `;
   }
 
   root.innerHTML = html;
@@ -202,7 +203,6 @@ function renderCategories(){
         if(v === "__NONE__") setCategoryMode(cat.id, "none");
         else if(v === "__RANDOM__") setCategoryMode(cat.id, "random");
         else {
-          // pick
           const chosen = r.getAttribute("data-val") || "";
           setCategoryMode(cat.id, "pick", chosen);
         }
@@ -212,6 +212,7 @@ function renderCategories(){
     // 初期：noneに同期
     setCategoryMode(cat.id, "none");
   }
+
   renderHistoryArea();
 }
 
@@ -230,3 +231,4 @@ function cssEscape(s){
   initState();
   renderCategories();
 })();
+
