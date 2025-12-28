@@ -4,60 +4,91 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PixAI プロンプト自動生成</title>
+
   <style>
-    body { font-family: sans-serif; margin: 12px; }
-    h2 { margin: 0 0 10px; }
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px 10px 60px; }
+
+    h2 { text-align: center; margin: 0 0 18px; }
+
     textarea { width: 100%; box-sizing: border-box; }
-    .buttons { margin: 10px 0; }
-    .buttons_group { display:flex; gap:8px; flex-wrap:wrap; }
-    button { padding: 8px 10px; cursor:pointer; }
-    .items { display:flex; flex-wrap:wrap; gap:12px; }
-    .item { border:1px solid #ccc; border-radius:10px; padding:10px; width: 360px; max-width: 100%; }
-    .item h3 { margin: 0 0 8px; font-size: 15px; }
-    summary { cursor:pointer; }
-    .small { font-size: 12px; opacity: .8; }
+    #result_area { height: 54px; }
+    #history_area { height: 140px; margin-top: 10px; }
+
+    .buttons_group { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+    button { padding: 6px 14px; cursor:pointer; }
+
+    .small { font-size: 12px; opacity: .8; text-align:center; margin-top: 6px; }
+
+    /* カテゴリ：元サイトっぽく「4列」 */
+    #categories {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 26px 24px;
+    }
+
+    .catBlock { text-align: center; }
+    .catTitle { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+
+    /* detailsを「▶ 詳細」っぽく */
+    details { display:inline-block; text-align:left; }
+    summary { cursor:pointer; list-style: none; }
+    summary::-webkit-details-marker { display:none; }
+    summary::before { content: "▶ "; }
+    details[open] summary::before { content: "▼ "; }
+    summary span { font-size: 14px; }
+
+    /* 選択肢の並びは左寄せ */
+    .choices { margin-top: 10px; text-align:left; }
+    .choices label { display:block; margin: 6px 0; }
+
+    /* スマホは2列→1列に落とす */
+    @media (max-width: 900px){
+      #categories { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px){
+      #categories { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
+
 <body>
+  <div class="wrap">
 
-<h2>PixAI プロンプト自動生成</h2>
+    <h2>PixAI プロンプト自動生成</h2>
 
-<div>
-  <div>結果の出力と履歴</div>
-  <textarea id="result_area" rows="3" placeholder="出力がここに出るよ"></textarea><br>
-  <textarea id="history_area" rows="10" placeholder="履歴"></textarea><br>
-  <div class="buttons_group" style="margin-top:8px;">
-    <button type="button" onclick="showResult();">出力</button>
-    <button type="button" onclick="copyResult();">コピー</button>
-    <button type="button" onclick="clearHistory();">履歴クリア</button>
+    <div>
+      <div style="text-align:center;">結果の出力と履歴</div>
+      <textarea id="result_area" rows="3" placeholder="出力がここに出るよ"></textarea>
+      <textarea id="history_area" rows="10" placeholder="履歴"></textarea>
+
+      <div class="buttons_group">
+        <button type="button" onclick="showResult();">出力</button>
+        <button type="button" onclick="copyResult();">コピー</button>
+        <button type="button" onclick="clearHistory();">履歴クリア</button>
+      </div>
+      <div class="small">※スマホで反映されない時は更新/再読み込み（キャッシュ）してね</div>
+    </div>
+
+    <div class="buttons_group" style="margin-top:16px;">
+      <button type="button" onclick="bodyRandom();">体型・胸をランダムに設定</button>
+      <button type="button" onclick="hairRandom();">髪をランダムに設定</button>
+      <button type="button" onclick="faceRandom();">顔・表情をランダムに設定</button>
+    </div>
+
+    <div class="buttons_group">
+      <button type="button" onclick="clothesRandom();">服をランダムに設定</button>
+      <button type="button" onclick="poseRandom();">ポーズをランダムに設定</button>
+      <button type="button" onclick="juiceRandom();">汁をランダムに設定</button>
+      <button type="button" onclick="allRandom();">全部ランダム</button>
+    </div>
+
+    <div id="categories"></div>
+
   </div>
-  <div class="small" style="margin-top:6px;">※スマホで反映されない時は更新/再読み込み（キャッシュ）してね</div>
-</div>
 
-<br>
-
-<div class="buttons">
-  <div class="buttons_group">
-    <button type="button" onclick="bodyRandom();">体型・胸をランダムに設定</button>
-    <button type="button" onclick="hairRandom();">髪をランダムに設定</button>
-    <button type="button" onclick="faceRandom();">顔・表情をランダムに設定</button>
-  </div>
-</div>
-
-<div class="buttons">
-  <div class="buttons_group">
-    <button type="button" onclick="clothesRandom();">服をランダムに設定</button>
-    <button type="button" onclick="poseRandom();">ポーズをランダムに設定</button>
-    <button type="button" onclick="juiceRandom();">汁をランダムに設定</button>
-    <button type="button" onclick="allRandom();">全部ランダム</button>
-  </div>
-</div>
-
-<br>
-
-<div class="items" id="categories"></div>
-
-<script src="data.js"></script>
-<script src="app.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
